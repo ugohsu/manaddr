@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}新規登録 - manaddr{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">新規登録</h2>
+</div>
+
+<div id="alert-box"></div>
+
+<form id="new-person-form">
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">基本情報</h3></div>
+    <div class="field-row">
+      <div class="field"><label>姓</label><input type="text" name="last_name"></div>
+      <div class="field"><label>名</label><input type="text" name="first_name"></div>
+      <div class="field"><label>敬称</label><input type="text" name="honorific" placeholder="様"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>セイ</label><input type="text" name="last_name_kana"></div>
+      <div class="field"><label>メイ</label><input type="text" name="first_name_kana"></div>
+      <div class="field">
+        <label>状態</label>
+        <select name="status">
+          <option value="active">active</option>
+          <option value="suspended">suspended</option>
+          <option value="declined">declined</option>
+          <option value="deceased">deceased</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>生年月日</label><input type="date" name="birthday"></div>
+      <div class="field"><label>性別</label><input type="text" name="gender"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>勤務先名</label><input type="text" name="company_name"></div>
+      <div class="field"><label>勤務先カナ</label><input type="text" name="company_kana"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>部署1</label><input type="text" name="department1"></div>
+      <div class="field"><label>部署2</label><input type="text" name="department2"></div>
+      <div class="field"><label>役職</label><input type="text" name="position"></div>
+    </div>
+    <div class="field">
+      <label>メモ</label>
+      <textarea name="memo" rows="2"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">住所（任意・最初の1件）</h3></div>
+    <div class="field-row">
+      <div class="field"><label>分類</label><input type="text" name="address_classification" value="自宅"></div>
+      <div class="field">
+        <label>郵便番号</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" name="address_zip" placeholder="123-4567" style="flex:1">
+          <button type="button" class="btn btn-secondary btn-sm" id="address-zip-lookup">住所を検索</button>
+        </div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>都道府県</label><input type="text" name="address_prefecture"></div>
+      <div class="field"><label>市区町村</label><input type="text" name="address_city"></div>
+      <div class="field"><label>町名番地</label><input type="text" name="address_block"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>建物名・部屋番号</label><input type="text" name="address_building"></div>
+      <div class="field"><label>最寄駅</label><input type="text" name="address_nearest_station"></div>
+    </div>
+  </div>
+
+  <div class="page-header">
+    <button type="submit" class="btn">登録する</button>
+    <a class="btn btn-text" href="{{ url_for('people.people_list') }}">キャンセル</a>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/person_new.js') }}?v={{ static_v }}"></script>
+{% endblock %}

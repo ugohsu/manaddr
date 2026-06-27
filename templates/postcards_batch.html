@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}宛名印字 - manaddr{% endblock %}
+{% block body_class %}page-postcards{% endblock %}
+{% block content %}
+<div class="master-detail" id="master-detail">
+  <div class="md-list-pane">
+    <div class="md-list-header">
+      <div class="page-header">
+        <h2 class="page-title">宛名印字</h2>
+      </div>
+
+      <div class="card">
+        <div class="field-row">
+          <div class="field">
+            <label for="filter-q">氏名・カナ・勤務先で検索</label>
+            <div class="search-wrap">
+              <input type="text" id="filter-q" placeholder="例: 山田">
+              <button type="button" class="search-clear-btn" id="filter-q-clear" aria-label="検索をクリア">×</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="filter-status">状態</label>
+            <select id="filter-status">
+              <option value="">すべて</option>
+              <option value="active">active</option>
+              <option value="suspended">suspended</option>
+              <option value="declined">declined</option>
+              <option value="deceased">deceased</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-tag">タグ</label>
+            <select id="filter-tag">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="alert-box"></div>
+
+      <div class="card" id="generate-bar">
+        <div class="field-row" style="align-items:center;margin-bottom:0">
+          <strong id="selected-count">選択中: 0件</strong>
+          <div class="field">
+            <label for="postcard-type">はがき種別</label>
+            <select id="postcard-type">
+              <option value="nengajo">年賀状（お年玉付き）</option>
+              <option value="normal">普通はがき</option>
+            </select>
+          </div>
+          <button type="button" class="btn" id="btn-generate" disabled>宛名PDFを生成</button>
+          <button type="button" class="btn btn-secondary" id="btn-record" disabled>記録する</button>
+          <div class="spacer"></div>
+          <button type="button" class="btn btn-text btn-sm" id="btn-clear-selection">選択解除</button>
+        </div>
+      </div>
+
+      <!-- 記録モーダル -->
+      <div class="modal-overlay" id="record-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="record-modal-title">
+        <div class="modal-box" style="max-width:480px">
+          <div class="modal-header">
+            <h3 class="modal-title" id="record-modal-title">送付を記録する</h3>
+            <button type="button" class="modal-close" id="record-modal-close" aria-label="閉じる">×</button>
+          </div>
+          <div id="record-modal-alert"></div>
+          <div class="modal-body">
+            <div class="field">
+              <label for="record-label">タイトル <span class="required">*</span></label>
+              <input type="text" id="record-label" placeholder="例: 2026年年賀状" style="width:100%">
+            </div>
+            <div class="field">
+              <label for="record-fiscal-year">年度</label>
+              <input type="number" id="record-fiscal-year" style="width:120px">
+            </div>
+            <div class="field">
+              <label for="record-memo">備考</label>
+              <textarea id="record-memo" rows="3" style="width:100%;resize:vertical"></textarea>
+            </div>
+            <p class="muted" id="record-summary" style="font-size:13px"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn" id="record-modal-submit">記録する</button>
+            <button type="button" class="btn btn-text" id="record-modal-cancel">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="md-list-scroll">
+      <div class="card">
+        <table class="people-table">
+          <thead>
+            <tr>
+              <th class="select-cell"><input type="checkbox" id="select-all-visible"></th>
+              <th>氏名</th>
+              <th>送付先</th>
+              <th>住所</th>
+              <th>タグ</th>
+              <th>状態</th>
+            </tr>
+          </thead>
+          <tbody id="people-tbody">
+            <tr><td colspan="6" class="muted">読み込み中…</td></tr>
+          </tbody>
+        </table>
+        <div id="empty-message" class="empty-state" style="display:none">該当する宛先がいません</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="md-detail-pane" id="md-detail-pane">
+    <div class="md-detail-toolbar" id="md-detail-toolbar" style="display:none">
+      <button type="button" class="icon-btn" id="btn-toggle-expand" title="一覧を隠して全画面表示" aria-label="詳細を全画面表示">⤢</button>
+    </div>
+    <div class="md-detail-scroll" id="md-detail-scroll">
+      <div class="md-detail-placeholder" id="md-detail-placeholder">左の一覧から宛先を選択してください</div>
+      <div id="md-detail-content" style="display:none">
+        <div class="page-header">
+          <h2 class="page-title" id="pc-detail-name">読み込み中…</h2>
+          <button type="button" class="btn btn-text" id="btn-back-to-list">← 一覧へ</button>
+        </div>
+        <div id="pc-detail-alert"></div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">印字設定（ワンショット）</h3></div>
+          <div class="field" style="max-width:320px">
+            <label for="pc-destination-select">送付先</label>
+            <select id="pc-destination-select"></select>
+          </div>
+          <div id="pc-companions-container" style="margin-top:6px"></div>
+          <div class="field-row" style="margin-top:2px;align-items:baseline">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal;font-size:14px">
+              <input type="checkbox" id="pc-include-company"> 勤務先を印字に含める
+            </label>
+            <span class="muted" style="font-size:12px">（未実装：チェックしても現時点では印字には反映されません）</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">固定設定（DB保存）</h3></div>
+          <div class="field" style="max-width:320px">
+            <label for="pc-sender-select">差出人</label>
+            <select id="pc-sender-select"></select>
+          </div>
+          <div class="field-row" style="gap:24px;margin-top:8px;flex-wrap:wrap">
+            <div class="field" style="min-width:180px">
+              <label for="pc-name-scale">氏名サイズ　<span id="pc-name-scale-value" style="font-weight:bold">1.00</span>×</label>
+              <input type="range" id="pc-name-scale" min="0.5" max="1.5" step="0.05" value="1" style="width:100%">
+            </div>
+            <div class="field" style="min-width:180px">
+              <label for="pc-address-scale">住所サイズ　<span id="pc-address-scale-value" style="font-weight:bold">1.00</span>×</label>
+              <input type="range" id="pc-address-scale" min="0.5" max="1.5" step="0.05" value="1" style="width:100%">
+            </div>
+          </div>
+          <div id="pc-settings-alert"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">この宛先のみプレビュー</h3></div>
+          <button type="button" class="btn btn-secondary btn-sm" id="pc-btn-preview">はがき宛名面PDFプレビュー</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/postcards_batch.js') }}?v={{ static_v }}"></script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}送付履歴 - manaddr{% endblock %}
+{% block body_class %}page-mailings{% endblock %}
+{% block content %}
+<div class="master-detail" id="master-detail">
+  <div class="md-list-pane">
+    <div class="md-list-header">
+      <div class="page-header">
+        <h2 class="page-title">送付履歴</h2>
+      </div>
+      <div id="alert-box"></div>
+    </div>
+
+    <div class="md-list-scroll">
+      <div class="card">
+        <table class="people-table">
+          <thead>
+            <tr>
+              <th>年度</th>
+              <th>タイトル</th>
+              <th>種別</th>
+              <th>件数</th>
+              <th>記録日時</th>
+            </tr>
+          </thead>
+          <tbody id="mailings-tbody">
+            <tr><td colspan="5" class="muted">読み込み中…</td></tr>
+          </tbody>
+        </table>
+        <div id="empty-message" class="empty-state" style="display:none">履歴がありません</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="md-detail-pane" id="md-detail-pane">
+    <div class="md-detail-toolbar" id="md-detail-toolbar" style="display:none">
+      <button type="button" class="icon-btn" id="btn-toggle-expand" title="一覧を隠して全画面表示" aria-label="詳細を全画面表示">⤢</button>
+    </div>
+    <div class="md-detail-scroll" id="md-detail-scroll">
+      <div class="md-detail-placeholder" id="md-detail-placeholder">左の一覧から履歴を選択してください</div>
+      <div id="md-detail-content" style="display:none">
+        <div class="page-header">
+          <h2 class="page-title" id="mh-title">読み込み中…</h2>
+          <button type="button" class="btn btn-text" id="btn-back-to-list">← 一覧へ</button>
+        </div>
+        <div id="mh-alert"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">基本情報</h3>
+            <div class="spacer"></div>
+            <button type="button" class="btn btn-danger btn-sm" id="btn-delete-mailing">削除</button>
+          </div>
+          <table class="detail-table">
+            <tbody>
+              <tr><th>タイトル</th><td id="mh-label-display"></td></tr>
+              <tr><th>年度</th><td id="mh-fiscal-year"></td></tr>
+              <tr><th>種別</th><td id="mh-output-type"></td></tr>
+              <tr><th>はがき種別</th><td id="mh-postcard-type"></td></tr>
+              <tr><th>記録日時</th><td id="mh-recorded-at"></td></tr>
+              <tr><th>件数</th><td id="mh-count"></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">備考</h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-memo" style="display:none">編集</button>
+            <button type="button" class="btn btn-sm" id="btn-save-memo" style="display:none">保存</button>
+            <button type="button" class="btn btn-text btn-sm" id="btn-cancel-memo" style="display:none">キャンセル</button>
+          </div>
+          <p id="mh-memo-display" class="muted" style="margin:0;padding:4px 0;white-space:pre-wrap"></p>
+          <textarea id="mh-memo-edit" rows="4" style="display:none;width:100%;resize:vertical"></textarea>
+        </div>
+
+        <div class="card" id="mh-pdf-card" style="display:none">
+          <div class="card-header"><h3 class="card-title">PDF再生成</h3></div>
+          <button type="button" class="btn btn-secondary" id="btn-retypeset">宛名PDFを再生成</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">宛先一覧</h3></div>
+          <table class="people-table">
+            <thead>
+              <tr>
+                <th>氏名</th>
+                <th>連名</th>
+                <th>住所</th>
+                <th>差出人</th>
+              </tr>
+            </thead>
+            <tbody id="mh-recipients-tbody">
+              <tr><td colspan="4" class="muted">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mailings_history.js') }}?v={{ static_v }}"></script>
+{% endblock %}

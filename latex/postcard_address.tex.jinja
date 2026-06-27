@@ -1,0 +1,68 @@
+\documentclass[tate,12pt]{jlreq}
+\usepackage{geometry}
+\geometry{paperwidth=\VAR{page.width_mm}mm,paperheight=\VAR{page.height_mm}mm,margin=0mm}
+\usepackage{eso-pic}
+\usepackage{luatexja-fontspec}
+\setmainjfont{IPAexMincho}
+\pagestyle{empty}
+
+\newlength{\nameYZero}
+
+\BLOCK{macro spaced_chars(text, gap_zw)}\BLOCK{for ch in text}\BLOCK{if not loop.first}\hskip\VAR{gap_zw}\zw{}\BLOCK{endif}\VAR{ch|texesc}\BLOCK{endfor}\BLOCK{endmacro}
+
+\BLOCK{macro address_block(entity, x_mm, top_mm, height_mm, font_pt, continuation_indent_zw)}
+\put(\VAR{x_mm}mm,-\VAR{top_mm}mm){\makebox(0,0)[t]{\hbox{\tate\parbox[t]{\VAR{height_mm}mm}{\raggedright\fontsize{\VAR{font_pt}pt}{\VAR{font_pt|float * 1.6}pt}\selectfont \BLOCK{for line in entity.address_lines}\BLOCK{if not loop.first}\\\hskip\VAR{continuation_indent_zw}\zw{}\BLOCK{endif}\VAR{line|texesc}\BLOCK{endfor}}}}}%
+\BLOCK{endmacro}
+
+\BLOCK{macro name_block(entity, top_mm, char_spacing_zw)}
+\BLOCK{if entity.name_columns[0].last_name}
+\settowidth{\nameYZero}{\tate\hbox{\fontsize{\VAR{entity.name_columns[0].font_pt}pt}{\VAR{entity.name_columns[0].font_pt|float * 1.4}pt}\selectfont \hskip1\zw{}\VAR{spaced_chars(entity.name_columns[0].last_name, char_spacing_zw)}}}%
+\BLOCK{else}
+\setlength{\nameYZero}{0pt}%
+\BLOCK{endif}
+\BLOCK{for col in entity.name_columns}
+\BLOCK{if col.last_name}
+\put(\VAR{col.x_mm}mm,-\dimexpr \VAR{top_mm}mm+\nameYZero\relax){\makebox(0,0)[b]{\hbox{\tate\fontsize{\VAR{col.font_pt}pt}{\VAR{col.font_pt|float * 1.4}pt}\selectfont \hskip1\zw{}\VAR{spaced_chars(col.last_name, char_spacing_zw)}}}}%
+\BLOCK{endif}
+\BLOCK{if col.suffix_parts}
+\put(\VAR{col.x_mm}mm,-\dimexpr \VAR{top_mm}mm+\nameYZero\relax){\makebox(0,0)[t]{\hbox{\tate\fontsize{\VAR{col.font_pt}pt}{\VAR{col.font_pt|float * 1.4}pt}\selectfont \BLOCK{for part in col.suffix_parts}\hskip1\zw{}\VAR{spaced_chars(part, char_spacing_zw)}\BLOCK{endfor}}}}%
+\BLOCK{endif}
+\BLOCK{if col.company_name}
+\put(\VAR{col.x_mm}mm,-\dimexpr \VAR{top_mm}mm-\VAR{layout.sender_company_name_gap_mm}mm\relax){\makebox(0,0)[b]{\hbox{\tate\fontsize{\VAR{col.company_name_font_pt}pt}{\VAR{col.company_name_font_pt|float * 1.4}pt}\selectfont \VAR{col.company_name|texesc}}}}%
+\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endmacro}
+
+\begin{document}
+\BLOCK{for pg in pages}
+\AddToShipoutPictureFG*{%
+  \AtPageUpperLeft{%
+    \BLOCK{for cell in pg.zip_cells}
+    \BLOCK{if cell.digit}
+    \put(\VAR{cell.x_mm}mm,-\VAR{zip_text_y_mm}mm){\makebox(0,0){\hbox{\yoko\fontsize{\VAR{zip_box.font_pt}pt}{\VAR{zip_box.font_pt}pt}\selectfont \VAR{cell.digit}}}}%
+    \BLOCK{endif}
+    \BLOCK{endfor}
+    %
+    \BLOCK{for cell in pg.sender_zip_cells}
+    \BLOCK{if cell.digit}
+    \put(\VAR{cell.x_mm}mm,-\VAR{sender_zip_text_y_mm}mm){\makebox(0,0){\hbox{\yoko\fontsize{\VAR{sender_zip_box.font_pt}pt}{\VAR{sender_zip_box.font_pt}pt}\selectfont \VAR{cell.digit}}}}%
+    \BLOCK{endif}
+    \BLOCK{endfor}
+    %
+    \VAR{address_block(pg.recipient, layout.recipient_address_x_mm, layout.recipient_address_top_mm, layout.recipient_address_height_mm, pg.recipient.address_font_pt, layout.address_continuation_indent_zw)}
+    %
+    \VAR{name_block(pg.recipient, layout.recipient_name_top_mm, layout.recipient_name_char_spacing_zw)}
+    %
+    \BLOCK{if pg.sender}
+    \VAR{address_block(pg.sender, pg.sender.address_x_mm, pg.sender.address_top_mm, layout.sender_address_height_mm, pg.sender.address_font_pt, layout.address_continuation_indent_zw)}
+    %
+    \VAR{name_block(pg.sender, pg.sender.name_top_mm, 0)}
+    \BLOCK{endif}
+  }%
+}
+\strut
+\BLOCK{if not loop.last}
+\newpage
+\BLOCK{endif}
+\BLOCK{endfor}
+\end{document}

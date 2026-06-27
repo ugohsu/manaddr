@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}宛先タグ - manaddr{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">宛先タグ</h2>
+</div>
+
+<div id="alert-box"></div>
+
+<div class="card">
+  <div class="field-row" style="align-items:flex-end">
+    <div class="field"><label>新規タグ</label><input type="text" id="new-tag-name" placeholder="例: 大学同期"></div>
+    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-tag">追加</button>
+  </div>
+</div>
+
+<div class="card">
+  <table class="people-table">
+    <thead>
+      <tr><th>タグ名</th><th>利用人数</th><th></th></tr>
+    </thead>
+    <tbody id="tags-tbody">
+      <tr><td colspan="3" class="muted">読み込み中…</td></tr>
+    </tbody>
+  </table>
+  <div id="empty-message" class="empty-state" style="display:none">タグがまだ登録されていません</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tags_manage.js') }}?v={{ static_v }}"></script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}manaddr{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ static_v }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <button type="button" class="menu-toggle" aria-label="メニュー">&#9776;</button>
+  <div class="app">
+    <div class="backdrop"></div>
+    <aside class="sidebar">
+      <a class="brand" href="{{ url_for('people.people_list') }}">
+        <span class="brand-dot"></span> manaddr
+      </a>
+      <nav class="side-nav">
+        <a class="side-link {% if request.endpoint=='people.people_list' %}active{% endif %}"
+           href="{{ url_for('people.people_list') }}">宛先一覧</a>
+        <a class="side-link {% if request.endpoint=='senders.senders_manage' %}active{% endif %}"
+           href="{{ url_for('senders.senders_manage') }}">差出人管理</a>
+        <a class="side-link {% if request.endpoint=='people.tags_manage' %}active{% endif %}"
+           href="{{ url_for('people.tags_manage') }}">宛先タグ</a>
+        <a class="side-link {% if request.endpoint=='correspondence.correspondence_labels_page' %}active{% endif %}"
+           href="{{ url_for('correspondence.correspondence_labels_page') }}">やりとりラベル</a>
+        <a class="side-link {% if request.endpoint=='export.postcards_batch_page' %}active{% endif %}"
+           href="{{ url_for('export.postcards_batch_page') }}">宛名印字</a>
+        <a class="side-link {% if request.endpoint=='export.export_csv_page' %}active{% endif %}"
+           href="{{ url_for('export.export_csv_page') }}">エクスポート</a>
+        <a class="side-link {% if request.endpoint=='mailings.mailings_history_page' %}active{% endif %}"
+           href="{{ url_for('mailings.mailings_history_page') }}">送付履歴</a>
+      </nav>
+      <a class="side-logout" href="{{ url_for('auth.logout') }}">ログアウト</a>
+    </aside>
+    <main class="main">
+      <div class="content-inner">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v={{ static_v }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

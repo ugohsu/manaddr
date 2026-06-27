@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}やりとりラベル - manaddr{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h2 class="page-title">やりとりラベル</h2>
+  <div class="spacer"></div>
+  <button type="button" class="btn" id="btn-new-label">＋ 新しいラベル</button>
+</div>
+<div id="alert-box"></div>
+
+<div class="card">
+  <div id="labels-list">
+    <p class="muted">読み込み中…</p>
+  </div>
+</div>
+
+<div id="entries-section" style="display:none">
+  <div class="page-header" style="margin-top:8px">
+    <h3 class="page-title" style="font-size:18px" id="entries-label-name"></h3>
+  </div>
+  <div class="card">
+    <div id="entries-list"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/correspondence_labels.js') }}?v={{ static_v }}"></script>
+{% endblock %}

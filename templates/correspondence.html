@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}やりとり — {{ person_name }} - manaddr{% endblock %}
+{% block content %}
+<script>
+  const PERSON_ID = {{ person_id }};
+  const PERSON_NAME = {{ person_name | tojson }};
+</script>
+
+<div class="page-header">
+  <h2 class="page-title" id="page-title">やりとり — {{ person_name }}</h2>
+  <div class="spacer"></div>
+  <a class="btn btn-text" href="/people/{{ person_id }}">← 宛先情報へ</a>
+</div>
+<div id="alert-box"></div>
+
+<div class="card">
+  <div class="chat-timeline" id="chat-timeline">
+    <p class="muted" style="text-align:center;padding:20px">読み込み中…</p>
+  </div>
+
+  <div class="chat-post-form">
+    <form id="post-form">
+      <div class="field-row" style="gap:20px;align-items:flex-start;flex-wrap:wrap">
+
+        <div class="field" style="min-width:200px;flex:1">
+          <label>方向</label>
+          <div style="display:flex;gap:16px;padding:4px 0">
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:normal;color:var(--fg)">
+              <input type="radio" name="direction" value="received" checked> 受信（相手→自分）
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:normal;color:var(--fg)">
+              <input type="radio" name="direction" value="sent"> 送信（自分→相手）
+            </label>
+          </div>
+        </div>
+
+        <div class="field" style="min-width:200px;flex:1">
+          <label>種別</label>
+          <div style="display:flex;gap:16px;padding:4px 0">
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:normal;color:var(--fg)">
+              <input type="radio" name="entry_type" value="text" checked> テキスト
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:normal;color:var(--fg)">
+              <input type="radio" name="entry_type" value="image"> 画像
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="post-text-area" class="field">
+        <label for="post-body">本文</label>
+        <textarea id="post-body" rows="3" placeholder="文面を入力…" style="resize:vertical"></textarea>
+      </div>
+
+      <div id="post-image-area" style="display:none">
+        <!-- 隠し input ×2：カメラ用とライブラリ用を分ける -->
+        <input type="file" id="post-image-camera"  accept="image/*" capture="environment" style="display:none">
+        <input type="file" id="post-image-library" accept="image/*" style="display:none">
+        <div class="field">
+          <label>画像</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-open-camera">📷 カメラで撮影</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-open-library">🖼 ライブラリから選択</button>
+            <span id="post-image-filename" class="muted" style="font-size:13px"></span>
+          </div>
+          <span class="muted" style="font-size:12px;margin-top:4px">画像は自動で圧縮されます。</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="post-memo">メモ（補足・注釈）</label>
+        <input type="text" id="post-memo" placeholder="省略可">
+      </div>
+
+      <div class="field">
+        <label>ラベル</label>
+        <div id="post-labels" class="chip-list" style="gap:8px;align-items:center;flex-wrap:wrap"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end">
+        <button type="submit" class="btn" id="post-submit">投稿</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ラベル追加ポップアップ (JS で動的に挿入) -->
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/correspondence.js') }}?v={{ static_v }}"></script>
+{% endblock %}

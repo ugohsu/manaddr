@@ -1,0 +1,21 @@
+<div class="page-header">
+  <h2 class="page-title" id="page-title">読み込み中…</h2>
+  <div class="spacer"></div>
+  <a class="btn btn-secondary btn-sm" href="#" id="btn-correspondence">やりとり</a>
+  <a class="btn btn-text" href="{{ url_for('people.people_list') }}" id="btn-back-to-list">← 一覧へ</a>
+</div>
+<div id="alert-box-detail"></div>
+
+<div class="card" id="card-details"></div>
+<div class="card" id="card-addresses"></div>
+<div class="card" id="card-phones"></div>
+<div class="card" id="card-emails"></div>
+<div class="card" id="card-urls"></div>
+<div class="card" id="card-companions"></div>
+<div class="card" id="card-tags"></div>
+
+<div class="card card-danger-zone">
+  <div class="card-header"><h3 class="card-title">危険な操作</h3></div>
+  <p class="muted" style="margin-top:-6px">削除すると住所・連名・タグ等もすべて削除され、元に戻せません。</p>
+  <button type="button" class="btn btn-danger btn-sm" id="btn-delete-person">この宛先を削除</button>
+</div>

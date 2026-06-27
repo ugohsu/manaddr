@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}バッチインポート - manaddr{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">バッチインポート（年賀状住所からの更新提案）</h2>
+  <div class="spacer"></div>
+  <a class="btn btn-text" href="{{ url_for('people.people_list') }}">一覧に戻る</a>
+</div>
+
+<div id="alert-box"></div>
+
+<div class="card" id="step-input">
+  <div class="card-header"><h3 class="card-title">① JSON を貼り付け / ファイル選択</h3></div>
+  <p class="muted">写真とあわせてAIに渡す仕様書: <a href="{{ url_for('static', filename='docs/batch_import_ai_spec.md') }}" target="_blank">batch_import_ai_spec.md</a>（この仕様書と年賀状の写真をAIに渡すと、ここに貼り付けるJSONを作成してもらえます）</p>
+  <div class="field-row" style="align-items:center">
+    <input type="file" id="json-file" accept=".json">
+    <a href="#" id="btn-sample">サンプルを表示</a>
+  </div>
+  <div class="field">
+    <label for="json-input">JSON（<code>address_updates</code> 配列）</label>
+    <textarea id="json-input" rows="14" spellcheck="false" style="font-family:monospace"
+      placeholder='{"address_updates": [...]}'></textarea>
+  </div>
+  <div class="field-row">
+    <button type="button" class="btn" id="btn-preview">プレビュー</button>
+    <button type="button" class="btn btn-text btn-sm" id="btn-clear">クリア</button>
+  </div>
+</div>
+
+<div class="card" id="step-preview" style="display:none">
+  <div class="card-header">
+    <h3 class="card-title">② プレビュー・確認</h3>
+    <span class="muted" id="preview-summary"></span>
+    <div class="spacer"></div>
+    <button type="button" class="btn btn-secondary btn-sm" id="btn-check-all">全選択</button>
+    <button type="button" class="btn btn-secondary btn-sm" id="btn-uncheck-all">全解除</button>
+    <button type="button" class="btn" id="btn-commit">インポート実行</button>
+  </div>
+  <div id="preview-list"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/people_import.js') }}?v={{ static_v }}"></script>
+{% endblock %}

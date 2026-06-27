@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}宛先一覧 - manaddr{% endblock %}
+{% block body_class %}page-people{% endblock %}
+{% block content %}
+<script>const INITIAL_PERSON_ID = {{ initial_person_id or 'null' }};</script>
+<div class="master-detail" id="master-detail">
+  <div class="md-list-pane">
+    <div class="md-list-header">
+      <div class="page-header">
+        <h2 class="page-title">宛先一覧</h2>
+        <div class="spacer"></div>
+        <a class="btn btn-secondary" href="{{ url_for('people.people_import') }}">バッチインポート</a>
+        <a class="btn" href="{{ url_for('people.people_new') }}">＋ 新規登録</a>
+      </div>
+
+      <div class="card">
+        <div class="field-row">
+          <div class="field">
+            <label for="filter-q">氏名・カナ・勤務先で検索</label>
+            <div class="search-wrap">
+              <input type="text" id="filter-q" placeholder="例: 山田">
+              <button type="button" class="search-clear-btn" id="filter-q-clear" aria-label="検索をクリア">×</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="filter-status">状態</label>
+            <select id="filter-status">
+              <option value="">すべて</option>
+              <option value="active">active</option>
+              <option value="suspended">suspended</option>
+              <option value="declined">declined</option>
+              <option value="deceased">deceased</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filter-tag">タグ</label>
+            <select id="filter-tag">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="alert-box"></div>
+
+      <div class="card" id="bulk-bar" style="display:none">
+        <div class="field-row" style="align-items:center;margin-bottom:0">
+          <strong id="bulk-count"></strong>
+          <button type="button" class="btn btn-secondary btn-sm" id="bulk-actions-toggle">一括操作</button>
+          <div class="spacer"></div>
+          <button type="button" class="btn btn-text btn-sm" id="bulk-clear">選択解除</button>
+        </div>
+        <div class="field-row" id="bulk-actions-panel" style="display:none;align-items:center;margin-top:10px;margin-bottom:0">
+          <select id="bulk-status">
+            <option value="">statusを一括変更…</option>
+            <option value="active">active</option>
+            <option value="suspended">suspended</option>
+            <option value="declined">declined</option>
+            <option value="deceased">deceased</option>
+          </select>
+          <button type="button" class="btn btn-secondary btn-sm" id="bulk-status-apply">変更を適用</button>
+          <select id="bulk-tag">
+            <option value="">タグを一括付与…</option>
+          </select>
+          <input type="text" id="bulk-new-tag-name" placeholder="または新しいタグ名" style="max-width:140px">
+          <button type="button" class="btn btn-secondary btn-sm" id="bulk-tag-apply">タグを追加</button>
+          <button type="button" class="btn btn-text btn-sm" id="bulk-tag-remove">タグを解除</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="md-list-scroll">
+      <div class="card">
+        <table class="people-table">
+          <thead>
+            <tr>
+              <th class="select-cell"><input type="checkbox" id="select-all-visible"></th>
+              <th>氏名</th>
+              <th>カナ</th>
+              <th>住所</th>
+              <th>タグ</th>
+              <th>状態</th>
+            </tr>
+          </thead>
+          <tbody id="people-tbody">
+            <tr><td colspan="6" class="muted">読み込み中…</td></tr>
+          </tbody>
+        </table>
+        <div id="empty-message" class="empty-state" style="display:none">該当する宛先がいません</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="md-detail-pane" id="md-detail-pane">
+    <div class="md-detail-toolbar" id="md-detail-toolbar" style="display:none">
+      <button type="button" class="icon-btn" id="btn-toggle-expand" title="一覧を隠して全画面表示" aria-label="詳細を全画面表示">⤢</button>
+    </div>
+    <div class="md-detail-scroll" id="md-detail-scroll">
+      <div class="md-detail-placeholder" id="md-detail-placeholder">左の一覧から宛先を選択してください</div>
+      <div id="md-detail-content" style="display:none">
+        {% include "_person_detail_pane.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/people_list.js') }}?v={{ static_v }}"></script>
+<script src="{{ url_for('static', filename='js/person_detail.js') }}?v={{ static_v }}"></script>
+{% endblock %}
