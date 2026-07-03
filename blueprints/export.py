@@ -130,16 +130,27 @@ def _resolve_postcard_type():
 
 
 def _resolve_requested_printer_profile_id():
-    """リクエストで明示的に指定されたprinter_profile_idを返す（無指定ならNone）。
-    Noneの場合、resolve_printer_profile側でis_default=1のプロファイルにフォールバックする。"""
+    """リクエストで明示的に指定されたprinter_profile_idを解釈する。
+    パラメータ自体が無ければNone（resolve_printer_profile側でis_default=1のプロファイルに
+    フォールバックする）。UIの「調整なし」はこれと区別するため専用の文字列'none'として送られてくる
+    ——'none'は「デフォルトへのフォールバックをせず常に無調整」を明示するシグナルであり、
+    Noneとは異なる（空文字をNone相当として扱うと「調整なし」と「未指定」を区別できなくなるため）。"""
+    if 'printer_profile_id' not in request.values:
+        return None
     raw = request.values.get('printer_profile_id', '').strip()
+    if raw == 'none':
+        return 'none'
     return int(raw) if raw.isdigit() else None
 
 
 def _apply_printer_adjustment(db, pdf_bytes, requested_profile_id=None):
     """生成済みPDFに、指定（無指定時はデフォルト）のプリンタ調整プロファイルを適用する。
     postcard.build_postcard_pdfの出力に対してのみ後から掛けるアダプタで、
-    postcard.py側のLaTeXレイアウト計算には一切関与しない。"""
+    postcard.py側のLaTeXレイアウト計算には一切関与しない。
+    requested_profile_id='none'（UIの「調整なし」明示指定）のときは、デフォルトへの
+    フォールバックをせず常に無調整のまま返す。"""
+    if requested_profile_id == 'none':
+        return pdf_bytes
     profile = resolve_printer_profile(db, requested_profile_id)
     if profile is None:
         return pdf_bytes

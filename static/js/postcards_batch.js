@@ -158,7 +158,9 @@ btnGenerate.addEventListener('click', async () => {
     const body = new URLSearchParams();
     Array.from(selectedPeople.keys()).forEach((id) => body.append('person_id', id));
     body.set('postcard_type', postcardType.value);
-    if (printerProfile.value) body.set('printer_profile_id', printerProfile.value);
+    // 空文字と区別するため「調整なし」も含めて常にvalueをそのまま送る
+    // （送らないと「未指定」＝デフォルトへのフォールバックと区別できなくなる）。
+    body.set('printer_profile_id', printerProfile.value);
     // 右ペインで人物ごとに選んだ送付先・連名設定を、選択中の人物分だけ送る
     // （includeCompanyはまだバックエンドに配線していないため送らない）。
     const overrides = {};
@@ -416,7 +418,8 @@ document.getElementById('pc-btn-preview').addEventListener('click', () => {
   const override = personOverrides.get(activePersonId) || {};
   const params = new URLSearchParams();
   params.set('postcard_type', postcardType.value);
-  if (printerProfile.value) params.set('printer_profile_id', printerProfile.value);
+  // 空文字と区別するため「調整なし」も含めて常にvalueをそのまま送る。
+  params.set('printer_profile_id', printerProfile.value);
   if (override.classification) params.set('classification', override.classification);
   if (override.companionIds !== null && override.companionIds !== undefined) {
     params.set('companion_ids', (override.companionIds || []).join(','));
@@ -472,7 +475,7 @@ async function loadPrinterProfiles() {
   try {
     const profileList = await apiFetch('/api/printer_profiles');
     const defaultProfile = profileList.find((p) => p.is_default);
-    printerProfile.innerHTML = '<option value="">調整なし</option>' +
+    printerProfile.innerHTML = '<option value="none">調整なし</option>' +
       profileList.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
     if (defaultProfile) printerProfile.value = String(defaultProfile.id);
   } catch (e) {
