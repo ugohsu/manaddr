@@ -39,6 +39,7 @@ def create_app():
     from blueprints.senders import senders_bp
     from blueprints.correspondence import correspondence_bp
     from blueprints.mailings import mailings_bp
+    from blueprints.printer_profiles import printer_profiles_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(people_bp)
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(senders_bp)
     app.register_blueprint(correspondence_bp)
     app.register_blueprint(mailings_bp)
+    app.register_blueprint(printer_profiles_bp)
 
     @app.route('/')
     def index():

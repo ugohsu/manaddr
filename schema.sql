@@ -231,6 +231,30 @@ CREATE TABLE IF NOT EXISTS person_postcard_settings (
     PRIMARY KEY (person_id, postcard_type)
 );
 
+-- ---------- プリンタ調整プロファイル ----------
+-- 家庭用プリンタ（例: Canon GX7130）がはがきサイズの真のフチなし印刷に対応しておらず、
+-- 印刷可能領域に収めるためデータ全体を自動で縮小・再配置してしまう機種がある
+-- （2026-07-03、実機の印刷結果を実測して確認。詳細は同日のレポート参照）。
+-- postcard.py側のLaTeXレイアウトは一切変更せず、生成済みPDFの各ページ全体に対して
+-- 単純な拡大縮小(scale_x/scale_y)と平行移動(offset_x_mm/offset_y_mm)を後から適用する
+-- ことで打ち消す（printer_adjust.py参照）。versioning不要の単純な設定値なので、
+-- senders/sender_detailsのような分離はせずこの1テーブルで完結させる。
+-- is_default=1の行が「現在使っているプリンタ」の既定プロファイル。行が無い/デフォルトが
+-- 無い場合は調整なし（等倍・オフセット0）として扱う。複数プロファイルを登録しておけば、
+-- 複数プリンタを使い分ける場合や将来の買い替え時にも印字画面のプルダウンから選ぶだけで済む。
+CREATE TABLE IF NOT EXISTS printer_profiles (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    is_default  INTEGER NOT NULL DEFAULT 0,
+    scale_x     REAL    NOT NULL DEFAULT 1.0,
+    scale_y     REAL    NOT NULL DEFAULT 1.0,
+    offset_x_mm REAL    NOT NULL DEFAULT 0.0,
+    offset_y_mm REAL    NOT NULL DEFAULT 0.0,
+    memo        TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
 -- ---------- やりとり（correspondence） ----------
 
 CREATE TABLE IF NOT EXISTS correspondence_entries (

@@ -6,7 +6,9 @@ import json
 from flask import Blueprint, abort, render_template, request, send_file
 
 import postcard
+import printer_adjust
 from blueprints.people import PRIMARY_ADDRESS_ORDER_BY
+from blueprints.printer_profiles import resolve_printer_profile
 from blueprints.senders import get_sender_companions_map, resolve_sender_id_for_person
 from helpers import get_db
 
@@ -127,6 +129,23 @@ def _resolve_postcard_type():
     return postcard_type
 
 
+def _resolve_requested_printer_profile_id():
+    """リクエストで明示的に指定されたprinter_profile_idを返す（無指定ならNone）。
+    Noneの場合、resolve_printer_profile側でis_default=1のプロファイルにフォールバックする。"""
+    raw = request.values.get('printer_profile_id', '').strip()
+    return int(raw) if raw.isdigit() else None
+
+
+def _apply_printer_adjustment(db, pdf_bytes, requested_profile_id=None):
+    """生成済みPDFに、指定（無指定時はデフォルト）のプリンタ調整プロファイルを適用する。
+    postcard.build_postcard_pdfの出力に対してのみ後から掛けるアダプタで、
+    postcard.py側のLaTeXレイアウト計算には一切関与しない。"""
+    profile = resolve_printer_profile(db, requested_profile_id)
+    if profile is None:
+        return pdf_bytes
+    return printer_adjust.apply(pdf_bytes, **profile)
+
+
 @export_bp.get('/export/postcard_preview/<int:person_id>')
 def postcard_preview(person_id):
     db = get_db()
@@ -162,6 +181,7 @@ def postcard_preview(person_id):
         pdf_bytes = postcard.build_postcard_pdf([{'recipient': recipient, 'sender': sender}], postcard_type=postcard_type)
     except RuntimeError as e:
         abort(500, str(e))
+    pdf_bytes = _apply_printer_adjustment(db, pdf_bytes, _resolve_requested_printer_profile_id())
 
     return send_file(
         io.BytesIO(pdf_bytes), mimetype='application/pdf',
@@ -217,6 +237,7 @@ def postcards_batch():
         pdf_bytes = postcard.build_postcard_pdf(items, postcard_type=postcard_type)
     except RuntimeError as e:
         abort(500, str(e))
+    pdf_bytes = _apply_printer_adjustment(db, pdf_bytes, _resolve_requested_printer_profile_id())
 
     response = send_file(
         io.BytesIO(pdf_bytes), mimetype='application/pdf',

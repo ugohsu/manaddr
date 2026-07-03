@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}プリンタ調整 - manaddr{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">プリンタ調整</h2>
+</div>
+
+<p class="muted" style="margin-top:-6px">
+  はがきサイズの真のフチなし印刷に対応していないプリンタでは、印刷可能領域に収めるため
+  データ全体が自動的に縮小・再配置され、郵便番号などがはがき現物の枠から下にズレることがある。
+  ここで登録した倍率・オフセットは、宛名印字PDFを生成した<strong>あと</strong>にページ全体へ
+  一律にかけるだけの補正で、宛名レイアウト自体（postcard.py側）には影響しない。
+  プリンタを買い替えたり複数台を使い分けたりする場合も、ここにプロファイルを追加・切替する
+  だけで済む。
+</p>
+
+<div id="alert-box"></div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">プロファイル</h3>
+    <div class="spacer"></div>
+    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-profile">プロファイルを追加</button>
+  </div>
+  <div id="profile-form-wrap" style="display:none"></div>
+  <table class="people-table">
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th>横倍率</th>
+        <th>縦倍率</th>
+        <th>Xオフセット(mm)</th>
+        <th>Yオフセット(mm)</th>
+        <th>既定</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="profiles-tbody"><tr><td colspan="7" class="muted">読み込み中…</td></tr></tbody>
+  </table>
+  <div id="profiles-empty" class="empty-state" style="display:none">プリンタ調整プロファイルがまだ登録されていません</div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3 class="card-title">キャリブレーションの目安</h3></div>
+  <ol style="margin:0; padding-left:20px; color:var(--muted); font-size:13.5px; line-height:1.9">
+    <li>実際に使うはがき種別でテスト用の宛名PDFを1枚作り、実機で印刷する。</li>
+    <li>印刷結果を、郵便番号枠など基準になる印刷済みガイド線と比べ、文字がどちら向きに何mmズレているかを測る（はがき上端に近い場所ほどズレが目立ちやすい）。</li>
+    <li>用紙全体が一様に同じ向き・同じ量だけズレるならオフセット（mm）を、用紙中心から離れるほどズレが大きくなるなら倍率を、少しずつ調整する。</li>
+    <li>倍率1.0・オフセット0（調整なし）から始め、試し刷りしながら追い込むのがおすすめ。</li>
+  </ol>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/printer_profiles.js') }}?v={{ static_v }}"></script>
+{% endblock %}

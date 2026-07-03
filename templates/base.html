@@ -25,6 +25,8 @@
            href="{{ url_for('correspondence.correspondence_labels_page') }}">やりとりラベル</a>
         <a class="side-link {% if request.endpoint=='export.postcards_batch_page' %}active{% endif %}"
            href="{{ url_for('export.postcards_batch_page') }}">宛名印字</a>
+        <a class="side-link {% if request.endpoint=='printer_profiles.printer_profiles_page' %}active{% endif %}"
+           href="{{ url_for('printer_profiles.printer_profiles_page') }}">プリンタ調整</a>
         <a class="side-link {% if request.endpoint=='export.export_csv_page' %}active{% endif %}"
            href="{{ url_for('export.export_csv_page') }}">エクスポート</a>
         <a class="side-link {% if request.endpoint=='mailings.mailings_history_page' %}active{% endif %}"

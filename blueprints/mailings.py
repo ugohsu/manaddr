@@ -8,6 +8,7 @@ from flask import Blueprint, abort, jsonify, render_template, request, send_file
 import postcard
 from blueprints.export import (
     _address_to_lines,
+    _apply_printer_adjustment,
     _build_sender_for_details_id,
     _fetch_recipient_rows,
     _get_postcard_settings,
@@ -342,6 +343,9 @@ def retypeset_mailing_pdf(mailing_id):
         pdf_bytes = postcard.build_postcard_pdf(items, postcard_type=postcard_type)
     except RuntimeError as e:
         abort(500, str(e))
+    # 過去の送付内容の再現が目的のため、印字時点のプロファイル指定は保存しておらず、
+    # 常に「現在」デフォルトに設定されているプリンタ調整プロファイルを適用する。
+    pdf_bytes = _apply_printer_adjustment(db, pdf_bytes)
 
     return send_file(
         io.BytesIO(pdf_bytes), mimetype='application/pdf',

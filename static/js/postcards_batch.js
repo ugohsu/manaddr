@@ -9,6 +9,7 @@ const selectedCountLabel = document.getElementById('selected-count');
 const btnGenerate = document.getElementById('btn-generate');
 const btnClearSelection = document.getElementById('btn-clear-selection');
 const postcardType = document.getElementById('postcard-type');
+const printerProfile = document.getElementById('printer-profile');
 
 const STATUS_LABEL = {
   active: 'active', suspended: 'suspended', declined: 'declined', deceased: 'deceased',
@@ -157,6 +158,7 @@ btnGenerate.addEventListener('click', async () => {
     const body = new URLSearchParams();
     Array.from(selectedPeople.keys()).forEach((id) => body.append('person_id', id));
     body.set('postcard_type', postcardType.value);
+    if (printerProfile.value) body.set('printer_profile_id', printerProfile.value);
     // 右ペインで人物ごとに選んだ送付先・連名設定を、選択中の人物分だけ送る
     // （includeCompanyはまだバックエンドに配線していないため送らない）。
     const overrides = {};
@@ -414,6 +416,7 @@ document.getElementById('pc-btn-preview').addEventListener('click', () => {
   const override = personOverrides.get(activePersonId) || {};
   const params = new URLSearchParams();
   params.set('postcard_type', postcardType.value);
+  if (printerProfile.value) params.set('printer_profile_id', printerProfile.value);
   if (override.classification) params.set('classification', override.classification);
   if (override.companionIds !== null && override.companionIds !== undefined) {
     params.set('companion_ids', (override.companionIds || []).join(','));
@@ -460,6 +463,20 @@ async function loadSenders() {
     allSenders = await apiFetch('/api/senders');
   } catch (e) {
     // 差出人一覧の読み込み失敗は一覧表示自体をブロックしない
+  }
+}
+
+// プリンタ調整プロファイル一覧を読み込み、既定（is_default）のプロファイルを
+// 初期選択にする（無ければ「調整なし」のまま）。
+async function loadPrinterProfiles() {
+  try {
+    const profileList = await apiFetch('/api/printer_profiles');
+    const defaultProfile = profileList.find((p) => p.is_default);
+    printerProfile.innerHTML = '<option value="">調整なし</option>' +
+      profileList.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    if (defaultProfile) printerProfile.value = String(defaultProfile.id);
+  } catch (e) {
+    // プリンタ調整プロファイルの読み込み失敗は一覧表示自体をブロックしない（「調整なし」のまま使える）
   }
 }
 
@@ -562,7 +579,7 @@ document.getElementById('record-modal-submit').addEventListener('click', async (
 });
 
 (async () => {
-  await Promise.all([loadTags(), loadSenders()]);
+  await Promise.all([loadTags(), loadSenders(), loadPrinterProfiles()]);
   await loadPeople();
   updateSelectionUi();
 })();

@@ -3,3 +3,5 @@ python-dotenv>=1.0.0
 gunicorn>=22.0.0
 jinja2>=3.1.0
 Pillow>=10.0.0
+# プリンタ調整アダプタ(printer_adjust.py)がPDFページの拡大縮小・平行移動に使う
+PyMuPDF>=1.24.0
