@@ -14,6 +14,14 @@
   （実際の自宅プリンタでの印刷結果との一致は別途要実機確認）。
 - 印刷可能領域の安全マージンはCanon GX7130相当機種(GX7030公式FAQ)の値
   （README.md「機能: エクスポート」要確認#7参照）。
+- 郵便番号枠は受取人・差出人とも、現物では3桁目と4桁目の間に住所の「123-4567」の
+  ハイフンに相当する余分な隙間があり、単純な均等ピッチではない（`hyphen_gap_mm`）。
+  受取人側は2026-07-03、実際の印刷結果（GX7130、`ohta_rslt_02.pdf`）の枠の罫線位置を
+  ピクセル解析し、他の桁間の区切りに比べて3-4桁目間だけ約0.6〜0.7mm広いことを確認した
+  （ユーザー指摘により発覚。README.md該当箇所の追記参照）。差出人側は元々
+  ラクスル発注ドラフトPDFの実測で約1mmと分かっていたが、従来は簡略化のため
+  未実装だった。両者ともここで初めて反映し、値は0.7mmを暫定の共通既定値として使う
+  （実機での見え方次第で今後調整可能）。
 """
 import os
 import subprocess
@@ -34,14 +42,16 @@ ZIP_BOX_DEFAULTS = {
     'cell_height_mm': 8.0,
     'pitch_mm': 7.0,
     'font_pt': 15,
+    # 3桁目と4桁目の間だけに入る余分な隙間（2026-07-03実測、要確認#後述）。
+    'hyphen_gap_mm': 0.7,
 }
 
 # 差出人用郵便番号枠（はがき左下）。2026-06-25、ユーザー提供の実際のラクスル発注
 # ドラフトPDF（`past_operation/2025宛名面.pdf`、45件分の宛名面プレビュー、年賀状用）に
 # ガイド線（赤色、印刷はされないラクスル側のレイアウト参考表示）として実在する
 # ことを確認し、その座標を実測して採用した（PyMuPDFでベクター図形のrect座標を
-# 抽出。3桁目と4桁目の間に約1mmのハイフン用の隙間があったが、本実装では
-# 受取人用zip枠と同様に簡略化し均等ピッチで扱っている）。これは年賀状（お年玉付き
+# 抽出。3桁目と4桁目の間に約1mmのハイフン用の隙間があり、2026-07-03、受取人側と
+# 合わせてhyphen_gap_mmとして反映した）。これは年賀状（お年玉付き
 # 年賀はがき）の場合の位置（`top_mm`）。普通はがきは下記`SENDER_ZIP_BOX_TYPE_OVERRIDES`
 # で位置が異なる（後述）。
 # ただし、これはラクスルの印刷代行サービス用テンプレートの値であり、本アプリの
@@ -54,6 +64,7 @@ SENDER_ZIP_BOX_DEFAULTS = {
     'cell_height_mm': 6.5,
     'pitch_mm': 4.17,
     'font_pt': 10,
+    'hyphen_gap_mm': 0.7,
 }
 
 # 2026-06-25追記: 上記`SENDER_ZIP_BOX_DEFAULTS['top_mm']`(122.6mm)は年賀状用の値で、
@@ -257,10 +268,13 @@ def zip_digits(zip_value):
     return ''.join(ch for ch in str(zip_value) if ch.isdigit())
 
 
-def _digit_cells(left_edge_mm, cell_width_mm, pitch_mm, digits):
+def _digit_cells(left_edge_mm, cell_width_mm, pitch_mm, digits, hyphen_gap_mm=0.0):
+    """7桁分のセル位置を返す。郵便番号枠は現物では3桁目と4桁目の間に、住所表記の
+    「123-4567」のハイフンに相当する余分な隙間が空いており、4〜7桁目（インデックス
+    3以降）はその分だけ均等ピッチの計算より右にずれる（`hyphen_gap_mm`で加算する）。"""
     cells = []
     for i in range(7):
-        cell_left = left_edge_mm + i * pitch_mm
+        cell_left = left_edge_mm + i * pitch_mm + (hyphen_gap_mm if i >= 3 else 0.0)
         cells.append({
             'x_mm': cell_left + cell_width_mm / 2,
             'digit': digits[i] if i < len(digits) else '',
@@ -269,15 +283,21 @@ def _digit_cells(left_edge_mm, cell_width_mm, pitch_mm, digits):
 
 
 def _recipient_zip_cells(zip_box, zip_value):
-    """受取人用郵便番号枠（はがき右上、右端基準）のセル位置を計算する。"""
-    total_width = 7 * zip_box['cell_width_mm'] + 6 * (zip_box['pitch_mm'] - zip_box['cell_width_mm'])
+    """受取人用郵便番号枠（はがき右上、右端基準）のセル位置を計算する。
+    右端（7桁目の右端）を`right_mm`に固定したまま3-4桁目間にhyphen_gap_mmを
+    挿入するため、全体の幅がその分広がり、左端はその分だけ左に伸びる。"""
+    total_width = (7 * zip_box['cell_width_mm'] + 6 * (zip_box['pitch_mm'] - zip_box['cell_width_mm'])
+                   + zip_box['hyphen_gap_mm'])
     left_edge = PAGE_WIDTH_MM - zip_box['right_mm'] - total_width
-    return _digit_cells(left_edge, zip_box['cell_width_mm'], zip_box['pitch_mm'], zip_digits(zip_value))
+    return _digit_cells(left_edge, zip_box['cell_width_mm'], zip_box['pitch_mm'], zip_digits(zip_value),
+                         hyphen_gap_mm=zip_box['hyphen_gap_mm'])
 
 
 def _sender_zip_cells(zip_box, zip_value):
-    """差出人用郵便番号枠（はがき左下、左端基準）のセル位置を計算する。"""
-    return _digit_cells(zip_box['left_mm'], zip_box['cell_width_mm'], zip_box['pitch_mm'], zip_digits(zip_value))
+    """差出人用郵便番号枠（はがき左下、左端基準）のセル位置を計算する。
+    左端（1桁目の左端）が基準のため、hyphen_gap_mmは4〜7桁目側にそのまま加算するだけでよい。"""
+    return _digit_cells(zip_box['left_mm'], zip_box['cell_width_mm'], zip_box['pitch_mm'], zip_digits(zip_value),
+                         hyphen_gap_mm=zip_box['hyphen_gap_mm'])
 
 
 def _name_segments(person, default_honorific=None):
